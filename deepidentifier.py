@@ -18,7 +18,7 @@ class DSConv(nn.Module):
 
 class Funnel_Block(nn.Module):
     def __init__(self, in_planes, out_planes, kernel, stride, zero_pad):
-        super(DSIBlock, self).__init__()
+        super(Funnel_Block, self).__init__()
 
         kernel1 = kernel
         kernel2 = (kernel[0] * 2, kernel[1])
@@ -49,16 +49,16 @@ class Funnel_Block(nn.Module):
         return out
 
 class Encoder(nn.Module):
-    def __init__(self, input_shape=450, z_size=10):
+    def __init__(self, input_shape=3000, z_size=10):
         super(Encoder, self).__init__()
 
-        self.mobileinception = nn.Sequential(
+        self.encoder = nn.Sequential(
                 Funnel_Block(1, 64, (6, 1), (1, 1), (0, 0, 2, 3)),
                 Funnel_Block(64, 64, (6, 1), (5, 1), (0, 0, 2, 3)),
-                Blockv1(64, 64, (6, 6), (1, 1), (2, 3, 2, 3)),
-                Blockv1(64, 64, (6, 6), (2, 1), (2, 3, 2, 2)),
-                Blockv1(64, 64, (6, 6), (1, 1), (2, 3, 2, 3)),
-                Blockv1(64, 64, (6, 6), (2, 1), (0, 0, 2, 2))
+                DSConv(64, 64, (6, 6), (1, 1), (2, 3, 2, 3)),
+                DSConv(64, 64, (6, 6), (2, 1), (2, 3, 2, 2)),
+                DSConv(64, 64, (6, 6), (1, 1), (2, 3, 2, 3)),
+                DSConv(64, 64, (6, 6), (2, 1), (0, 0, 2, 2))
             )
         self.fc = nn.Linear(int(input_shape / 120 * 64) , z_size)
 
@@ -69,7 +69,7 @@ class Encoder(nn.Module):
         return out
 
 class DeepIdentifier(nn.Module):
-    def __init__(self, input_shape=450, filters=[32, 64, 128, 10]):
+    def __init__(self, input_shape=450, filters=[64, 64, 64, 10]):
         super(DeepIdentifier, self).__init__()
 
         self.encoder = Encoder()
@@ -78,18 +78,18 @@ class DeepIdentifier(nn.Module):
 
         self.decoder = nn.Sequential(
             nn.ReLU(),
-            nn.ConvTranspose2d(filters[2], filters[1], kernel_size=3, stride=(1, 1), padding=(1, 0)),
+            nn.ConvTranspose2d(filters[2], filters[1], kernel_size=6, stride=(2, 1), padding=(2, 0)),
 
             nn.ReLU(),
-            nn.ZeroPad2d((1, 1, 1, 0)),
-            nn.ConvTranspose2d(filters[1], filters[0], kernel_size=3, stride=(2, 1), padding=(1, 2)),
+            nn.ZeroPad2d((1, 0, 0, 0)),
+            nn.ConvTranspose2d(filters[1], filters[0], kernel_size=6, stride=(2, 1), padding=(2, 3)),
 
             nn.ReLU(),
-            nn.ZeroPad2d((0, 0, 0, 0)),
-            nn.ConvTranspose2d(filters[0], 1, kernel_size=(6, 1), stride=(3, 1), padding=(3, 0))
+            nn.ZeroPad2d((0, 0, 1, 0)),
+            nn.ConvTranspose2d(filters[0], 1, kernel_size=(6, 1), stride=(5, 1), padding=(3, 0))
         )
         self.fc1 = nn.Linear(filters[3], int(25 * filters[2]))
-        self.fc2 = nn.Linear(z_size, 2)
+        self.fc2 = nn.Linear(filters[3], 2)
 
     def forward(self, x):
         z = self.encoder(x)

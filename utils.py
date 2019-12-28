@@ -22,13 +22,12 @@ def read_file(fn):
     f.close()
     return np.array(infile)
 
-def read_data(folder_name):
-    ori_train_data = []
-    ori_test_data = []
-    sub_name = np.arange(30).astype(str)
-
-    for sn in range(len(sub_name)):
-        sub_path = folder_name + '/' + sub_name[sn]
+def read_UIR_dataset(folder_name):
+    ori_train_data, ori_test_data = [], []
+    sub_name = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+    
+    for sn in sub_name:
+        sub_path = folder_name + '/' + sn
         for file_name in os.listdir(sub_path):
             file_path = sub_path + '/' + file_name
             if "train_data" in file_name:
@@ -38,7 +37,7 @@ def read_data(folder_name):
 
     return np.array(ori_train_data), np.array(ori_test_data)
 
-def produce_data_label(data_t, data_f, sub_num, down):
+def produce_data_label(data_t, data_f, down):
     new_data_f = []
     for i in data_f:
         new_data_f.append(i[np.random.randint(i.shape[0], size=int(data_t.shape[0]/down))])

@@ -12,19 +12,19 @@ from sklearn.metrics import classification_report
 from deepidentifier import *
 from utils import *
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "6, 7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1, 2"
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
-parser.add_argument('--ep', default=5, type=int, help='total epochs')
-parser.add_argument('--bs', default=256, type=int, help='batch size')
+parser.add_argument('--ep', default=30, type=int, help='total epochs')
+parser.add_argument('--bs', default=128, type=int, help='batch size')
 parser.add_argument('--al', default=0.1, type=int, help='alpha value')
-parser.add_argument('--dp', default="../DMAL/waist_data", type=str, help='data path')
+parser.add_argument('--dp', default="prep_data", type=str, help='data path')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 args = parser.parse_args()
 
-print('==> Prepare data...')
-ori_train_data, ori_test_data, ori_train_act, ori_test_act = read_dmal_act_data(args.dp)
+print('==> Prepare data...\n')
+ori_train_data, ori_test_data = read_UIR_dataset(args.dp)
 
 all_ey = np.array([])
 all_ep = np.array([])
@@ -56,7 +56,7 @@ test_loader = Data.DataLoader(
     num_workers=8
 )
 
-print('==> Build model...')
+print('==> Build model...\n')
 net = DeepIdentifier()
 net = nn.DataParallel(net, device_ids=range(torch.cuda.device_count())).cuda()
 
@@ -68,7 +68,7 @@ def train(epoch):
     net.train()
     train_loss, correct, total = 0, 0, 0
 
-    for batch_idx, (train_bx, train_by, _) in enumerate(train_loader):
+    for batch_idx, (train_bx, train_by) in enumerate(train_loader):
         train_bx, train_by = train_bx.cuda(), train_by.cuda()
 
         outputs1, outputs2 = net(train_bx)
@@ -91,7 +91,7 @@ def test(epoch):
     test_loss, correct, total = 0, 0, 0
     true_cul, pred_cul = np.array([]), np.array([])
 
-    for batch_idx, (test_bx, test_by, _) in enumerate(test_loader):
+    for batch_idx, (test_bx, test_by) in enumerate(test_loader):
         with torch.no_grad():
             test_bx, test_by = test_bx.cuda(), test_by.cuda()
 
@@ -103,21 +103,12 @@ def test(epoch):
             total += test_by.size(0)
             correct += predicted.eq(test_by.data).cpu().sum()
 
-            true_cul = np.concatenate((true_cul, test_by.data.cpu().numpy()), axis=0)
-            pred_cul = np.concatenate((pred_cul, predicted.data.cpu().numpy()), axis=0)
-
             progress_bar(batch_idx, len(test_loader), 'Loss: %.3f | Acc: %.3f (%d/%d)'
                 % (test_loss/(batch_idx+1), float(correct)/total, correct, total))
 
-    return true_cul, pred_cul
-
+print('==> Start training...\n')
 for epoch in range(args.ep):
     print('Epoch %d' % epoch)
     train(epoch)
-    ey, ep = test(epoch)
+    test(epoch)
     print('\n')
-    if epoch in range(args.ep)[-5:]:
-        all_ey = np.concatenate((all_ey, ey), axis=0)
-        all_ep = np.concatenate((all_ep, ep), axis=0)
-
-print(classification_report(all_ey, all_ep))
