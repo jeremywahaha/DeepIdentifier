@@ -12,7 +12,7 @@ from sklearn.metrics import classification_report
 from deepidentifier import *
 from utils import *
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1, 2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
