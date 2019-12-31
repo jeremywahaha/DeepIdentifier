@@ -4,6 +4,7 @@ This repository contains the pytorch implementation of **DeepIdentifier** as des
 ```
 DeepIdentifier: A Deep Learning-Based Lightweight Approach for User Identity Recognition
 ```
+https://link.springer.com/chapter/10.1007/978-3-030-35231-8_28
 
 ## Data
 The UIR dataset is public to facilitate the research community and free to download. The one in folder "UIR_dataset" is the raw data we collected from smartphones, and the one in folder "prep_data" is the preprocessed data to fit the requirement of deep learning model input, which is used to perform the example.
