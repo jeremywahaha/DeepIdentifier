@@ -60,7 +60,7 @@ class Encoder(nn.Module):
                 DSConv(64, 64, (6, 6), (1, 1), (2, 3, 2, 3)),
                 DSConv(64, 64, (6, 6), (2, 1), (0, 0, 2, 2))
             )
-        self.fc = nn.Linear(int(input_shape / 120 * 64) , z_size)
+        self.fc = nn.Linear(int(input_shape / 120 * 64), z_size)
 
     def forward(self, x):
         out = self.encoder(x)
@@ -69,11 +69,10 @@ class Encoder(nn.Module):
         return out
 
 class DeepIdentifier(nn.Module):
-    def __init__(self, input_shape=450, filters=[64, 64, 64, 10]):
+    def __init__(self, filters=[64, 64, 64, 10]):
         super(DeepIdentifier, self).__init__()
 
         self.encoder = Encoder()
-        self.input_shape = input_shape
         self.filters = filters
 
         self.decoder = nn.Sequential(
