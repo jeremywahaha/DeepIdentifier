@@ -26,9 +26,6 @@ args = parser.parse_args()
 print('==> Prepare data...\n')
 ori_train_data, ori_test_data = read_UIR_dataset(args.dp)
 
-all_ey = np.array([])
-all_ep = np.array([])
-
 right_sub_num = 0
 fake_sub_num = 1
 
