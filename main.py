@@ -7,7 +7,6 @@ import torch.utils.data as Data
 
 import os
 import argparse
-from sklearn.metrics import classification_report
 
 from deepidentifier import *
 from utils import *
@@ -86,7 +85,6 @@ def train(epoch):
 def test(epoch):
     net.eval()
     test_loss, correct, total = 0, 0, 0
-    true_cul, pred_cul = np.array([]), np.array([])
 
     for batch_idx, (test_bx, test_by) in enumerate(test_loader):
         with torch.no_grad():
